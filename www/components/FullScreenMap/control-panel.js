@@ -34,24 +34,25 @@ export default class ControlPanel extends PureComponent {
     case 'boolean':
       return this._renderCheckbox(name, value);
     case 'number':
-      return this._renderNumericInput(name, value);
+      return this._renderNumericInput(name, value)
     default:
       return null;
     }
   }
 
   render() {
-    const Container = this.props.containerComponent || defaultContainer;
-    const {settings} = this.props;
+    const Container = this.props.containerComponent || defaultContainer
+    const {settings} = this.props
 
     return (
       <Container>
-        <h3>Limit Map Interaction</h3>
-        <p>Turn interactive features off/on.</p>
+        <h3>Public Transport </h3>
+        {/*
+        <p>Turn interactive features off/on.</p> */}
         {/* <div className="source-link">
           <a href="https://github.com/uber/react-map-gl/tree/master/examples/interaction" target="_new">View Code ↗</a>
         </div> */}
-        <hr />
+        {/* <hr /> */}
 
         { Object.keys(settings).map(name => this._renderSetting(name, settings[name])) }
       </Container>
