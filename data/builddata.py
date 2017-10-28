@@ -1,15 +1,11 @@
-
 import getopt
 import sys
 import os
 
 from pymongo import MongoClient
-
 import csv
-
 import requests
-from xml.etree import ElementTree
-
+import xml.etree.ElementTree as ET
 
 #******************************************************************************
 # parse input params
@@ -35,8 +31,6 @@ def usage():
 #******************************************************************************
 # define variables
 inputFile = ""
-
-
 
 #******************************************************************************
 # parsing input parameters
@@ -67,9 +61,6 @@ class Station:
         self.latitude = latitude
 
 
-
-
-
 client = MongoClient()
 db = client['PubTransViz']
 
@@ -77,9 +68,6 @@ stations = db.stations
 
 #******************************************************************************
 # write stations
-
-
-
 majorStations = []
 
 with open(inputFile, 'r') as csvfile:
@@ -102,13 +90,11 @@ with open(inputFile, 'r') as csvfile:
             majorStations.append(station)
 
 
-
 teststation = majorStations[0]
 # make a test-request for that given station
-
 url = 'https://api.opentransportdata.swiss/trias'
 def getStops(station):
-    xml = '''<?xml version="1.0" encoding="UTF-8"?>
+    return '''<?xml version="1.0" encoding="UTF-8"?>
             <Trias version="1.1" xmlns="http://www.vdv.de/trias" xmlns:siri="http://www.siri.org.uk/siri" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                 <ServiceRequest>
                     <siri:RequestTimestamp>2016-06-27T13:34:00</siri:RequestTimestamp>
@@ -133,27 +119,22 @@ def getStops(station):
                 </ServiceRequest>
             </Trias>'''
 
-    headers = {'Content-Type': 'application/xml', 'Authorization' : '57c5dbbbf1fe4d00010000189db17b8e65cf45027f3bd01df4eabfbe'} # set what your server accepts
-    response = requests.post(url, data=xml, headers=headers)
-    return response
-
-response = getStops(teststation)
-#response.raw.decode_content = True
-
-#root = ET.fromstring(country_data_as_string)
-
-#print(response.content)
-
-##events = ElementTree.iterparse(response.raw)
-##for event, elem in events:
-    ##print(event)
-
-
-tree = ElementTree.fromstring(response.content)
-
-# list = elem.xpath('//Trias')
-# print("result set:")
-# for item in list:
-#     field = item.getparent().getparent().attrib['k']
-#     value = item.text
-#     print("\t%s = %s"%(field, value))
+# Parsing xml string
+root = ET.fromstring(getStops(teststation))
+for el in root.findall('{http://www.vdv.de/trias}ServiceRequest'):
+    for sub in el:
+        if len(sub.text.strip()) > 0:
+            print (sub.tag.split('}')[1])
+            print (sub.text)
+        for sub2 in sub:
+            if len(sub2.text.strip()) > 0:
+                print (sub2.tag.split('}')[1])
+                print (sub2.text)
+            for sub3 in sub2:
+                if len(sub3.text.strip()) > 0:
+                    print (sub3.tag.split('}')[1])
+                    print (sub3.text)
+                for sub4 in sub3:
+                    if len(sub4.text.strip()) > 0:
+                        print (sub4.tag.split('}')[1])
+                        print (sub4.text)
