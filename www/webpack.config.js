@@ -1,6 +1,7 @@
 /* eslint-disable */
 const path = require('path');
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const DotenvPlugin = require('webpack-dotenv-plugin');
 
 module.exports = {
   entry: './index.js',
@@ -74,8 +75,15 @@ module.exports = {
     disableHostCheck: true   // That solved it
  },
  plugins: [
+   new DotenvPlugin({
+      sample: './.env.default',
+      path: './.env'
+   })
     // new ExtractTextPlugin('style.css', { allChunks: true } ),
  ],
+ // node: {
+ //  fs: 'empty'
+ // }
 }
 
 // This will make the redux-simpler-router module resolve to the
