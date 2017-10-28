@@ -7,6 +7,8 @@ from pymongo import MongoClient
 
 import csv
 
+import requests
+from xml.etree import ElementTree
 
 
 #******************************************************************************
@@ -76,6 +78,10 @@ stations = db.stations
 #******************************************************************************
 # write stations
 
+
+
+majorStations = []
+
 with open(inputFile, 'r') as csvfile:
     reader = csv.DictReader(csvfile, delimiter=',', quotechar='"')
     for row in reader:
@@ -90,4 +96,65 @@ with open(inputFile, 'r') as csvfile:
             "longitude" : longitude,
             "name" : name
         }
-        station_id = stations.insert_one(station).inserted_id
+        #station_id = stations.insert_one(station).inserted_id
+        
+        if(row['use4lineGen'] is "1"):
+            majorStations.append(station)
+
+        
+
+teststation = majorStations[0]
+# make a test-request for that given station
+
+url = 'https://api.opentransportdata.swiss/trias'
+def getStops(station):
+    xml = """<?xml version="1.0" encoding="UTF-8"?> 
+            <Trias version="1.1" xmlns="http://www.vdv.de/trias" xmlns:siri="http://www.siri.org.uk/siri" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <ServiceRequest>
+                    <siri:RequestTimestamp>2016-06-27T13:34:00</siri:RequestTimestamp>
+                    <siri:RequestorRef>EPSa</siri:RequestorRef>
+                    <RequestPayload>
+                        <StopEventRequest>
+                            <Location>
+                                <LocationRef>
+                                    <StopPointRef>""" + "8500010" +"""</StopPointRef>
+                                </LocationRef>
+                                <DepArrTime>2017-10-27T10:00:00</DepArrTime>
+                            </Location>
+                            <Params>
+                                <NumberOfResults>200</NumberOfResults>
+                                <StopEventType>departure</StopEventType>
+                                <IncludePreviousCalls>true</IncludePreviousCalls>
+                                <IncludeOnwardCalls>true</IncludeOnwardCalls>
+                                <IncludeRealtimeData>false</IncludeRealtimeData>
+                            </Params>
+                        </StopEventRequest>
+                    </RequestPayload>
+                </ServiceRequest>
+            </Trias>"""
+
+    headers = {'Content-Type': 'application/xml', 'Authorization' : '57c5dbbbf1fe4d00010000189db17b8e65cf45027f3bd01df4eabfbe'} # set what your server accepts
+    response = requests.post(url, data=xml, headers=headers)
+    return response
+
+response = getStops(teststation)
+#response.raw.decode_content = True
+
+#root = ET.fromstring(country_data_as_string)
+
+#print(response.content)
+
+##events = ElementTree.iterparse(response.raw)
+##for event, elem in events:
+    ##print(event)
+
+
+tree = ElementTree.fromstring(response.content)
+
+list = elem.xpath('//Trias')
+print("result set:")
+for item in list:
+    field = item.getparent().getparent().attrib['k']
+    value = item.text
+    print("\t%s = %s"%(field, value))
+
