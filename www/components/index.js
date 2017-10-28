@@ -1,9 +1,12 @@
-import React, { Component } from 'react' // eslint-disable-line
+import React, { Component } from 'react'
+import FullScreenMap from './FullScreenMap'
 
 class Main extends Component {
   render() {
     return (
-      <div>Main Div</div>
+      <div>
+        <FullScreenMap />
+      </div>
     )
   }
 }
