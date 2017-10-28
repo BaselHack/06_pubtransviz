@@ -1,5 +1,6 @@
 /* global window */
 import React, {Component} from 'react';
+import {render} from 'react-dom';
 import MapGL, {Marker} from 'react-map-gl';
 import ControlPanel from './control-panel';
 
@@ -15,8 +16,8 @@ export default class App extends Component {
     super(props)
     this.state = {
       viewport: {
-        latitude: 37.729,
-        longitude: -122.36,
+        latitude: 47.559601,
+        longitude: 7.588576,
         zoom: 11,
         bearing: 0,
         pitch: 50,
@@ -35,6 +36,8 @@ export default class App extends Component {
         maxPitch: 85
       }
     }
+
+    this._resize = this._resize.bind(this)
   }
 
   componentDidMount() {
@@ -46,15 +49,15 @@ export default class App extends Component {
     window.removeEventListener('resize', this._resize);
   }
 
-  _resize = () => {
+  _resize() {
     this.setState({
       viewport: {
         ...this.state.viewport,
         width: this.props.width || window.innerWidth,
         height: this.props.height || window.innerHeight
       }
-    });
-  };
+    })
+  }
 
   _onViewportChange = viewport => this.setState({viewport});
 
@@ -79,13 +82,13 @@ export default class App extends Component {
       <MapGL
         {...viewport}
         {...settings}
-        mapStyle="mapbox://styles/mapbox/light-v9"
+        mapStyle='mapbox://styles/mapbox/light-v9'
         onViewportChange={this._onViewportChange}
         mapboxApiAccessToken={MAPBOX_TOKEN} >
         <style>{MARKER_STYLE}</style>
         { bartStations.map(this._renderMarker) }
-        <ControlPanel containerComponent={this.props.containerComponent}
-          settings={settings} onChange={this._onSettingChange} />
+        {/* <ControlPanel containerComponent={this.props.containerComponent}
+          settings={settings} onChange={this._onSettingChange} /> */}
       </MapGL>
     );
   }
