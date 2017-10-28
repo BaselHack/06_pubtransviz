@@ -82,7 +82,7 @@ export default class App extends Component {
       <MapGL
         {...viewport}
         {...settings}
-        mapStyle='mapbox://styles/mapbox/light-v9'
+        mapStyle='mapbox://styles/mapbox/streets-v9'
         onViewportChange={this._onViewportChange}
         mapboxApiAccessToken={MAPBOX_TOKEN} >
         <style>{MARKER_STYLE}</style>
