@@ -21,7 +21,7 @@ except getopt.GetoptError as err:
     print(err) # will print something like "option -a not recognized"
     print("\n")
     #usage()
-    sys.exit(2) 
+    sys.exit(2)
 #******************************************************************************
 
 #******************************************************************************
@@ -48,14 +48,14 @@ for o, a in opts:
         sys.exit()
     else:
         assert False, "unhandled option: " + o
-        
+
 #******************************************************************************
 # check we have everyting
 if(inputFile is ""):
     print("Missing some options. Use -h to learn which options are required")
     sys.exit(2)
-    
-    
+
+
 print("string import for file: " + inputFile)
 
 
@@ -65,8 +65,8 @@ class Station:
         self.name = name
         self.longitude = longitude
         self.latitude = latitude
-        
-        
+
+
 
 
 
@@ -88,7 +88,7 @@ with open(inputFile, 'r') as csvfile:
         longitude = row['Y-Koord.']
         latitude = row['X-Koord.']
         name = row['Name']
-        uid = row['Dst-Nr85']    
+        uid = row['Dst-Nr85']
         station = {
             "uid" : uid,
             "name" : name,
@@ -97,18 +97,18 @@ with open(inputFile, 'r') as csvfile:
             "name" : name
         }
         #station_id = stations.insert_one(station).inserted_id
-        
+
         if(row['use4lineGen'] is "1"):
             majorStations.append(station)
 
-        
+
 
 teststation = majorStations[0]
 # make a test-request for that given station
 
 url = 'https://api.opentransportdata.swiss/trias'
 def getStops(station):
-    xml = """<?xml version="1.0" encoding="UTF-8"?> 
+    xml = '''<?xml version="1.0" encoding="UTF-8"?>
             <Trias version="1.1" xmlns="http://www.vdv.de/trias" xmlns:siri="http://www.siri.org.uk/siri" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                 <ServiceRequest>
                     <siri:RequestTimestamp>2016-06-27T13:34:00</siri:RequestTimestamp>
@@ -117,7 +117,7 @@ def getStops(station):
                         <StopEventRequest>
                             <Location>
                                 <LocationRef>
-                                    <StopPointRef>""" + "8500010" +"""</StopPointRef>
+                                    <StopPointRef>8500010</StopPointRef>
                                 </LocationRef>
                                 <DepArrTime>2017-10-27T10:00:00</DepArrTime>
                             </Location>
@@ -131,7 +131,7 @@ def getStops(station):
                         </StopEventRequest>
                     </RequestPayload>
                 </ServiceRequest>
-            </Trias>"""
+            </Trias>'''
 
     headers = {'Content-Type': 'application/xml', 'Authorization' : '57c5dbbbf1fe4d00010000189db17b8e65cf45027f3bd01df4eabfbe'} # set what your server accepts
     response = requests.post(url, data=xml, headers=headers)
@@ -151,10 +151,9 @@ response = getStops(teststation)
 
 tree = ElementTree.fromstring(response.content)
 
-list = elem.xpath('//Trias')
-print("result set:")
-for item in list:
-    field = item.getparent().getparent().attrib['k']
-    value = item.text
-    print("\t%s = %s"%(field, value))
-
+# list = elem.xpath('//Trias')
+# print("result set:")
+# for item in list:
+#     field = item.getparent().getparent().attrib['k']
+#     value = item.text
+#     print("\t%s = %s"%(field, value))
