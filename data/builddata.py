@@ -120,8 +120,8 @@ with open(inputFile, 'r') as csvfile:
                 "_id": autoincrement('stations_autoincid'),
                 "uid" : uid,
                 "name" : name,
-                "latitude" : float(converted_coord[0]),
-                "longitude" : float(converted_coord[1]),
+                "latitude" : converted_coord[0],
+                "longitude" : converted_coord[1],
                 "coordinates": [converted_coord[0], converted_coord[1]],
                 "name" : name
             }
