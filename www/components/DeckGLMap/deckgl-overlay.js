@@ -19,13 +19,13 @@ const colorRange = [
   [209, 55, 78]
 ];
 
-const elevationScale = {min: 1, max: 50};
+const elevationScale = { min: 1, max: 50 }
 
 const defaultProps = {
   radius: 1000,
   upperPercentile: 100,
   coverage: 1
-};
+}
 
 export default class DeckGLOverlay extends Component {
 
@@ -35,9 +35,9 @@ export default class DeckGLOverlay extends Component {
 
   static get defaultViewport() {
     return {
-      latitude: 51.509865,
-      longitude: -0.118092,
-      zoom: 6.6,
+      latitude: 47.559601,
+      longitude: 7.588576,
+      zoom: 11,
       minZoom: 5,
       maxZoom: 15,
       pitch: 40.5,
@@ -47,8 +47,8 @@ export default class DeckGLOverlay extends Component {
 
   constructor(props) {
      super(props);
-     this.startAnimationTimer = null;
-     this.intervalTimer = null;
+     this.startAnimationTimer = null
+     this.intervalTimer = null
      this.state = {
        elevationScale: elevationScale.min
      };
@@ -120,7 +120,7 @@ export default class DeckGLOverlay extends Component {
          radius,
          upperPercentile
        })
-     ];
+     ]
 
      return <DeckGL {...viewport} layers={layers} initWebGLParameters />;
  }
