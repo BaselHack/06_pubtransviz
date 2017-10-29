@@ -6,7 +6,7 @@ import DeckGLMap from './DeckGLMap'
 
 const tabs = [
   { linkTo: 'map', label: 'Map' },
-  { linkTo: 'traffic', label: 'Traffic' }
+  { linkTo: 'heatmap', label: 'Heatmap' }
 ]
 
 class Main extends Component {
