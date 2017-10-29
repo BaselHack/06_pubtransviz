@@ -107,13 +107,13 @@ with open(inputFile, 'r') as csvfile:
         #longitude = longitude[0]
         #latitude = converted[1]
 
-        print (converted_coord)
+        #print (converted_coord)
 
 
         name = row['Name']
         uid = row['Dst-Nr85']
         station = None
-        if(stations.find({"uid": uid}).count is 0):
+        if(stations.find({"uid": uid}).count() is 0):
 
             station = {
                 "_id": autoincrement('stations_autoincid'),
@@ -231,7 +231,7 @@ def tryPopulateDbFromXML(xml_data):
                         lineNumber = servicee_publishedLineName_textElement.text
 
                         if(lineNumber is not None):
-                            if(lines.find({"number": lineNumber}).count is 0):
+                            if(lines.find({"number": lineNumber}).count() is 0):
                                 line = {
                                     "number" : lineNumber
                                 }
@@ -257,14 +257,14 @@ def tryPopulateDbFromXML(xml_data):
 
 
                                 #look whether we already have this connection
-                                connection_in_db = connections.find_one({'start_station_uid' : departueStationUid, 'end_station_uid' : arrival_station_uid})
-                                if(connection_in_db is None):
+                                connections_in_db = connections.find({'start_station_uid' : departueStationUid, 'end_station_uid' : arrival_station_uid})
+                                if(connections_in_db.count() is 0):
                                     travel_time = arrival_time - arrivalTime_before
                                     travel_time_string = str(travel_time)
                                     connection = {
                                         'start_station_uid' : departueStationUid,
                                         'start_station_id' : departureStationId,
-                                        'end_station_uid' : arrivaltation_uid,
+                                        'end_station_uid' : arrival_station_uid,
                                         'end_station_id' :arrivalStation['_id'],
                                         'travel_time' : travel_time_string
                                         }
