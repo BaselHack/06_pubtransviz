@@ -60,7 +60,7 @@ export default class DeckGLOverlay extends Component {
       new LineLayer({
         id: 'flight-paths',
         data: flightPaths,
-        strokeWidth,
+        strokeWidth: 40,
         fp64: false,
         getSourcePosition: d => d.start,
         getTargetPosition: d => d.end,
