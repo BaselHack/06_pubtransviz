@@ -29,16 +29,16 @@ export default class DeckGLLines extends Component {
       airports: null
     };
 
-    requestJson(DATA_URL.FLIGHT_PATHS, (error, response) => {
-      if (!error) {
-        this.setState({flightPaths: response});
-      }
-    });
-    requestJson(DATA_URL.AIRPORTS, (error, response) => {
-      if (!error) {
-        this.setState({airports: response});
-      }
-    });
+    // requestJson(DATA_URL.FLIGHT_PATHS, (error, response) => {
+    //   if (!error) {
+    //     this.setState({flightPaths: response});
+    //   }
+    // });
+    // requestJson(DATA_URL.AIRPORTS, (error, response) => {
+    //   if (!error) {
+    //     this.setState({airports: response});
+    //   }
+    // });
   }
 
   componentDidMount() {

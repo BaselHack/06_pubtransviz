@@ -40,7 +40,7 @@ export default class App extends Component {
         minPitch: 0,
         maxPitch: 85
       },
-      stylemapbox: 'mapbox://styles/mapbox/streets-v9'
+      stylemapbox: 'mapbox://styles/mapbox/dark-v9'
     }
 
     this._resize = this._resize.bind(this)
@@ -108,8 +108,8 @@ export default class App extends Component {
         mapboxApiAccessToken={MAPBOX_TOKEN} >
         <style>{MARKER_STYLE}</style>
         { tramStations.map(this._renderMarker) }
-        <ControlPanel containerComponent={this.props.containerComponent}
-          settings={settings} onChange={this._onSettingChange} />
+        {/* <ControlPanel containerComponent={this.props.containerComponent}
+          settings={settings} onChange={this._onSettingChange} /> */}
       </MapGL>
     );
   }
