@@ -58,13 +58,14 @@ if(inputFile is ""):
 
 print("string import for file: " + inputFile)
 
+converter = GPSConverter()
 
 class Station:
      def __init__(self, uid, name, longitude, latitude):
-        self.uid = uid
-        self.name = name
-        self.longitude = longitude
-        self.latitude = latitude
+         self.uid = uid
+         self.name = name
+         self.longitude = longitude
+         self.latitude = latitude
 
 
 client = MongoClient()
@@ -89,15 +90,11 @@ if(not 'counter' in db.collection_names()):
     "_id": 'stations_autoincid',
     "seq": 0
     })
-    
 
 
 #******************************************************************************
 # write stations
 majorStations = []
-
-converter = GPSConverter()
-
 
 
 
@@ -107,10 +104,14 @@ with open(inputFile, 'r') as csvfile:
         longitude = row['Y-Koord.']
         latitude = row['X-Koord.']
 
-        #converted = converter.LV03toWGS84(float(longitude), float(latitude), 0.0)
+        converted_coord = converter.LV03toWGS84(
+            float(longitude.replace(',', '.')),
+            float(latitude.replace(',', '.')),
+            0.0)
         #longitude = longitude[0]
         #latitude = converted[1]
-        
+
+
         name = row['Name']
         uid = row['Dst-Nr85']
         station = None
@@ -119,12 +120,13 @@ with open(inputFile, 'r') as csvfile:
                 "_id": autoincrement('stations_autoincid'),
                 "uid" : uid,
                 "name" : name,
-                "latitude" : latitude,
-                "longitude" : longitude,
-                "name" : name}
+                "latitude" : converted_coord[0],
+                "longitude" : converted_coord[1],
+                "name" : name
+            }
             stations.insert_one(station)
             print("added new station: " + uid)
-            
+
         if(row['use4lineGen'] is "1"):
             if(station is None):
                 station = {
@@ -168,7 +170,7 @@ def getStops(station):
                     </RequestPayload>
                 </ServiceRequest>
             </Trias>'''
-            
+
     headers = {'Content-Type': 'application/xml', 'Authorization' : '57c5dbbbf1fe4d00010000189db17b8e65cf45027f3bd01df4eabfbe'} # set what your server accepts
     response = requests.post(url, data=xml, headers=headers)
     return response
@@ -190,19 +192,19 @@ def tryPopulateDbFromXML(xml_data):
                         thisCall_callAtStop_serviceDepatureElement = thisCall_callAtStopElement.find('{http://www.vdv.de/trias}ServiceDeparture')
                         thisCall_callAtStop_serviceDepature_timetabledTimeElement = thisCall_callAtStop_serviceDepatureElement.find('{http://www.vdv.de/trias}TimetabledTime')
                         departure_time = parseToDatetime(thisCall_callAtStop_serviceDepature_timetabledTimeElement.text)
-     
+
                         thisCall_callAtStop_stopPointRefElement = thisCall_callAtStopElement.find('{http://www.vdv.de/trias}StopPointRef')
                         departueStationUid = thisCall_callAtStop_stopPointRefElement.text
                         #print("departure station: " + departueStationUid)
                         #print("departure time: " + str(departure_time)) 
-                        
-                        #we grab the lne number
+
                         serviceElement = stopEventElement.find('{http://www.vdv.de/trias}Service')
                         servicee_publishedLineNameElement = serviceElement.find('{http://www.vdv.de/trias}PublishedLineName')
                         servicee_publishedLineName_textElement = servicee_publishedLineNameElement.find('{http://www.vdv.de/trias}Text')
-                        
+
                         #look whether we have the line already in the database, if not add it
                         lineNumber = servicee_publishedLineName_textElement.text
+
                         if(lineNumber is not None):
                             if(lines.find({"number": lineNumber}).count is 0):
                                 line = {
@@ -214,7 +216,7 @@ def tryPopulateDbFromXML(xml_data):
                         arrivalTime_before = departure_time
                         for onwardCallElement in stopEventElement.findall('{http://www.vdv.de/trias}OnwardCall'):
                             for callAtStopElement in onwardCallElement.findall('{http://www.vdv.de/trias}CallAtStop'):
-                                
+
                                 stopPointRefElement = callAtStopElement.find('{http://www.vdv.de/trias}StopPointRef')
                                 arrival_station_uid = stopPointRefElement.text
 
@@ -223,6 +225,7 @@ def tryPopulateDbFromXML(xml_data):
                                 arrival_time = parseToDatetime(serviceArrival_timetabledTimeElement.text)
                                 #print("arrival: " + str(arrival_time))
                                 
+
                                 #look whether we already have this connection
                                 if(connections.find({'start_station_uid' : departueStationUid, 'end_station_uid' : arrival_station_uid}).count is 0):
                                     travel_time = arrival_time - arrivalTime_before

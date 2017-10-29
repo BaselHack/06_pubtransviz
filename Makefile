@@ -1,5 +1,6 @@
 FRONT_PATH=www
 API_PATH=api
+DATA_PATH=data
 
 front-dev:
 	cd $(FRONT_PATH) \
@@ -13,9 +14,13 @@ front-build:
 
 front-prod:
 	cd $(FRONT_PATH)/dist \
-	&& python -m SimpleHTTPServer 9000
+	&& python3 -m SimpleHTTPServer 9000
 
 api-dev:
 	cd $(API_PATH) \
 	&& sudo pip install -r requirements.txt \
-	&& python main.py
+	&& python3 main.py
+
+feeddb1:
+	cd $(DATA_PATH) \
+	&& python3 builddata.py -i StationsBaselArea.csv
