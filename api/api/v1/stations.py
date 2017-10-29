@@ -3,6 +3,7 @@ from pymongo import MongoClient
 import json
 
 from bson.json_util import dumps
+from datetime import timedelta
 
 
 class StationsCtrl(Resource):
@@ -57,28 +58,35 @@ def buildConnectionMatrix():
             connection = connections.find_one({'start_station_uid' : stationX['uid'], 'end_station_uid' : stationY['uid']})
             connectionMatrix[x].append(connection) #most will be None
     print("building in-memory connection matrix done!")
-    
+    return connectionMatrix
 
-connectionMatrix = buildConnectionMatrix()
+#connectionMatrix = buildConnectionMatrix()
+connectionMatrix = None
 
 def computeHeatMap(longitude, latitude):
+    dbname = 'PubTransViz'
+    dbcoll = 'stations'
+    client = MongoClient()
+    state = client[dbname][dbcoll]
     db = client['PubTransViz']
     connections = db.connections
     stations = db.stations
     
     
-    chosen_station = stations.find_one({'longitude': {'$near': longitude}, 'longitude': {'$near': latitude}})
+    chosen_station = stations.find_one({'coordinates': {'$near': [longitude, latitude]}})
+    print('selected station ' + chosen_station['uid'])
     
     # maybe this can be done better, but we are in a hurry, I just need the count
-    stations = json.loads(dumps(state.find({})))
-    count = stations.count()
+    jsonStations = json.loads(dumps(state.find({})))
+    count = len(jsonStations)
     
 
     stationsAsResult = []
     for i in range(0, count):
-        stationsAsResult[i] = None
+        stationsAsResult.append(None)
 
     startStationId = int(chosen_station['_id'])
+    print('station id ' + str(startStationId))
     stationsAsResult[startStationId] = stations.find_one({'_id' :  startStationId})
 
     stationsAsResult[startStationId]['travelTime'] = 0 # travel time is zero at starting point
@@ -87,27 +95,30 @@ def computeHeatMap(longitude, latitude):
     stationsAsResult = computeTravelTimeFromStation(startStationId, stationsAsResult, traveltime)
     return stationsAsResult
 
-
+def parseToDatetime(string_date):
+    return datetime.datetime.strptime(s,"%H:%M:%S")
 
 def computeTravelTimeFromStation(stationId, stationsAsResult, traveltime):
+    global connectionMatrix
     #break condition, don't continue to iterate if all stations are calcualted
 
-    allStationsCalcualted = true
+    allStationsCalcualted = True
     for station in stationsAsResult:
         if(station is None):
-            allStationsCalcualted = false
+            allStationsCalcualted = False
     
     if(allStationsCalcualted):
         return stationsAsResult
     
-    
+    client = MongoClient()
     db = client['PubTransViz']
     connections = db.connections
     stations = db.stations
-    
-    
 
     #actual calculation
+    
+    if(connectionMatrix is None):
+        connectionMatrix = buildConnectionMatrix()
 
     connectionRow = connectionMatrix[stationId]
     for connection in connectionRow:
@@ -127,7 +138,7 @@ def computeTravelTimeFromStation(stationId, stationsAsResult, traveltime):
     return stationsAsResult
             
             
-if __name__ == '__main':
-    print(json.dumps(computeHeatMap(47.551365, 7.594903)))
+#if __name__ == '__main':
+print(json.dumps(computeHeatMap(47.551365, 7.594903)))
     
     
