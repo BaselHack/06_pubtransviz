@@ -16,7 +16,10 @@ export default class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      tramStations: [],
+      tramStations: [
+        // {"name":"Lafayette (LAFY)","coordinates":[-122.123801,37.893394]},
+        // { "name":	"Aesch", 'coordinates': [7.603065503922171, 47.46773500432692]}
+      ],
       viewport: {
         latitude: 47.559601,
         longitude: 7.588576,
@@ -49,7 +52,6 @@ export default class App extends Component {
     requestJson('http://localhost:8080/api/v1/stations', (error, response) => {
 
       console.log(response)
-
       if (!error) {
         this.setState({tramStations: response});
       }

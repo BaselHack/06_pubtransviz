@@ -121,7 +121,7 @@ with open(inputFile, 'r') as csvfile:
                 "name" : name,
                 "latitude" : converted_coord[0],
                 "longitude" : converted_coord[1],
-                "coordinates": [converted_coord[0], converted_coord[1]],
+                "coordinates": [converted_coord[1],converted_coord[0]],
                 "name" : name
             }
             stations.insert_one(station)
@@ -237,7 +237,7 @@ def tryPopulateDbFromXML(xml_data):
                                 }
                                 lines.insert_one(line)
                                 #print("added new line: " + lineNumber)
-                                
+
                         departureStation = stations.find_one({'uid' : departueStationUid})
                         departureStationId = departureStation['_id']
 
