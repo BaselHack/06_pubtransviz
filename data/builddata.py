@@ -75,6 +75,9 @@ stations = db.stations
 lines = db.lines
 connections = db.connections
 
+stations.create_index("uid", unique=True)
+lines.create_index("number", unique=True)
+
 def autoincrement(name):
    ret = db.counter.find_and_modify(
        query={"_id": name},
@@ -111,9 +114,8 @@ with open(inputFile, 'r') as csvfile:
 
         name = row['Name']
         uid = row['Dst-Nr85']
-
-        station_in_db = lines.find_one({"uid": uid})
-        if(station_in_db is None):
+        station = None
+        if(lines.find({"uid": uid}).count is 0):
             station = {
                 "_id": autoincrement('stations_autoincid'),
                 "uid" : uid,
@@ -127,6 +129,13 @@ with open(inputFile, 'r') as csvfile:
             print("added new station: " + uid)
 
         if(row['use4lineGen'] is "1"):
+            if(station is None):
+                station = {
+                "uid" : uid,
+                "name" : name,
+                "latitude" : latitude,
+                "longitude" : longitude,
+                "name" : name}
             majorStations.append(station)
 
 
@@ -147,12 +156,12 @@ def getStops(station):
                         <StopEventRequest>
                             <Location>
                                 <LocationRef>
-                                    <StopPointRef>8500073</StopPointRef>
+                                    <StopPointRef>''' + station['uid'] + '''</StopPointRef>
                                 </LocationRef>
                                 <DepArrTime>2017-10-27T10:00:00</DepArrTime>
                             </Location>
                             <Params>
-                                <NumberOfResults>2</NumberOfResults>
+                                <NumberOfResults>200</NumberOfResults>
                                 <StopEventType>departure</StopEventType>
                                 <IncludePreviousCalls>true</IncludePreviousCalls>
                                 <IncludeOnwardCalls>true</IncludeOnwardCalls>
@@ -166,37 +175,6 @@ def getStops(station):
     headers = {'Content-Type': 'application/xml', 'Authorization' : '57c5dbbbf1fe4d00010000189db17b8e65cf45027f3bd01df4eabfbe'} # set what your server accepts
     response = requests.post(url, data=xml, headers=headers)
     return response
-
-# Parsing xml string
-#root = ET.fromstring(getStops(teststation).content)
-
-#for el in root.findall('{http://www.vdv.de/trias}OnwardCall'):
-    #for sub in el:
-        #if not sub.text is None:
-            #if (len(sub.text.strip()) > 0):
-                #print (sub.tag.split('}')[1])
-                #print (sub.text)
-            #for sub2 in sub:
-                #if len(sub2.text.strip()) > 0:
-                    #print (sub2.tag.split('}')[1])
-                    #print (sub2.text)
-                #for sub3 in sub2:
-                    #if len(sub3.text.strip()) > 0:
-                        #print (sub3.tag.split('}')[1])
-                        #print (sub3.text)
-                    #for sub4 in sub3:
-                        #if len(sub4.text.strip()) > 0:
-                            #print (sub4.tag.split('}')[1])
-                            #print (sub4.text)
-        #else:
-            ##here we should
-            #stops = sub.findall('StopEventResponse')
-            #for stop in stops:
-                #print(stop.text)
-
-
-
-
 
 def parseToDatetime(string_date):
     return datetime.strptime(string_date, "%Y-%m-%dT%H:%M:%SZ")
@@ -218,24 +196,24 @@ def tryPopulateDbFromXML(xml_data):
 
                         thisCall_callAtStop_stopPointRefElement = thisCall_callAtStopElement.find('{http://www.vdv.de/trias}StopPointRef')
                         departueStationUid = thisCall_callAtStop_stopPointRefElement.text
-                        print("departure station: " + departueStationUid)
-                        print("departure time: " + str(departure_time))
+                        #print("departure station: " + departueStationUid)
+                        #print("departure time: " + str(departure_time)) 
 
-                        #we grab the lne number
                         serviceElement = stopEventElement.find('{http://www.vdv.de/trias}Service')
                         servicee_publishedLineNameElement = serviceElement.find('{http://www.vdv.de/trias}PublishedLineName')
                         servicee_publishedLineName_textElement = servicee_publishedLineNameElement.find('{http://www.vdv.de/trias}Text')
 
                         #look whether we have the line already in the database, if not add it
                         lineNumber = servicee_publishedLineName_textElement.text
-                        line = lines.find_one({"number": lineNumber})
-                        if(line is None):
-                            line = {
-                                "number" : lineNumber
-                            }
-                            lines.insert_one(line)
-                            print("added new line: " + lineNumber)
 
+                        if(lineNumber is not None):
+                            if(lines.find({"number": lineNumber}).count is 0):
+                                line = {
+                                    "number" : lineNumber
+                                }
+                                lines.insert_one(line)
+                                #print("added new line: " + lineNumber)
+                        
                         arrivalTime_before = departure_time
                         for onwardCallElement in stopEventElement.findall('{http://www.vdv.de/trias}OnwardCall'):
                             for callAtStopElement in onwardCallElement.findall('{http://www.vdv.de/trias}CallAtStop'):
@@ -246,11 +224,11 @@ def tryPopulateDbFromXML(xml_data):
                                 serviceArrivalElemen = callAtStopElement.find('{http://www.vdv.de/trias}ServiceArrival')
                                 serviceArrival_timetabledTimeElement = serviceArrivalElemen.find('{http://www.vdv.de/trias}TimetabledTime')
                                 arrival_time = parseToDatetime(serviceArrival_timetabledTimeElement.text)
-                                print("arrival: " + str(arrival_time))
+                                #print("arrival: " + str(arrival_time))
+                                
 
                                 #look whether we already have this connection
-                                connection_in_db = connections.find_one({'start_station_uid' : departueStationUid, 'end_station_uid' : arrival_station_uid})
-                                if(connection_in_db is None):
+                                if(connections.find({'start_station_uid' : departueStationUid, 'end_station_uid' : arrival_station_uid}).count is 0):
                                     travel_time = arrival_time - arrivalTime_before
                                     travel_time_string = str(travel_time)
                                     connection = {
@@ -259,10 +237,13 @@ def tryPopulateDbFromXML(xml_data):
                                         'travel_time' : travel_time_string
                                         }
                                     connections.insert_one(connection)
-                                    print("added new connection: " + departueStationUid + ' - ' + arrival_station_uid)
-
+                                    #print("added new connection: " + departueStationUid + ' - ' + arrival_station_uid)
+                               
                                 arrivalTime_before = arrival_time
 
 
-xml_data = getStops(teststation).content
-tryPopulateDbFromXML(xml_data)
+for majorStation in majorStations:
+    print('populating from station: ' + majorStation['uid'])
+    xml_data = getStops(majorStation).content
+    tryPopulateDbFromXML(xml_data)
+                
