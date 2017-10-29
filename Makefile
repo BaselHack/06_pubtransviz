@@ -23,4 +23,4 @@ api-dev:
 
 feeddb1:
 	cd $(DATA_PATH) \
-	&& python3 builddata -i StationsBaselArea.csv
+	&& python3 builddata.py -i StationsBaselArea.csv
