@@ -9,19 +9,19 @@ class StationsCtrl(Resource):
     # ${HOSTNAME}/v1/api/stations
     # will return an array of stations (JSON objects)
     def get(self):
-        
+
         parser = reqparse.RequestParser()
         parser.add_argument('longitude', type=str)
         parser.add_argument('latitude', type=str)
 
         arguments = parser.parse_args()
-        
+
         longitude = arguments['longitude']
         latitude = arguments['latitude']
-        
+
         if(longitude is not None and latitude is not None):
             computeHeatMap(longitude, latitude)
-        
+
         dbname = 'PubTransViz'
         dbcoll = 'stations'
         client = MongoClient()
@@ -38,6 +38,7 @@ def buildConnectionMatrix():
     client = MongoClient()
     state = client[dbname][dbcoll]
     stations = json.loads(dumps(state.find({})))
+
     count = len(stations)
     
     db = client['PubTransViz']
@@ -72,26 +73,25 @@ def computeHeatMap(longitude, latitude):
     stations = json.loads(dumps(state.find({})))
     count = stations.count()
     
+
     stationsAsResult = []
     for i in range(0, count):
         stationsAsResult[i] = None
-    
+
     startStationId = int(chosen_station['_id'])
-    
     stationsAsResult[startStationId] = stations.find_one({'_id' :  startStationId})
+
     stationsAsResult[startStationId]['travelTime'] = 0 # travel time is zero at starting point
-    
+
     traveltime = 0
     stationsAsResult = computeTravelTimeFromStation(startStationId, stationsAsResult, traveltime)
     return stationsAsResult
 
 
-            
+
 def computeTravelTimeFromStation(stationId, stationsAsResult, traveltime):
-    
-    
     #break condition, don't continue to iterate if all stations are calcualted
-    
+
     allStationsCalcualted = true
     for station in stationsAsResult:
         if(station is None):
@@ -106,29 +106,28 @@ def computeTravelTimeFromStation(stationId, stationsAsResult, traveltime):
     stations = db.stations
     
     
+
     #actual calculation
-    
+
     connectionRow = connectionMatrix[stationId]
     for connection in connectionRow:
         if(connection is not None):
             # check if we already have the station in the list, if not add it with the travel-times
             arrivalStationid = int(connection['end_station_id'])
             arrivalStation = stationsAsResult[arrivalStationid]
-            
+
             if(arrivalStation is None):
                 stationsAsResult[arrivalStationid] = stations.find_one({'_id' : arrivalStationid})
                 arrivalStation = stationsAsResult[arrivalStationid]
             currentTravelTime = traveltime + float(connection['travel_time'])
             arrivalStation['travelTime'] = currentTravelTime
-            
+
             stationsAsResult = computeTravelTimeFromStation(int(arrivalStation['_id']), stationsAsResult, currentTravelTime)
-            
+
     return stationsAsResult
-                
             
             
 if __name__ == '__main':
     print(computeHeatMap(47.551365, 7.594903))
-    
     
     
