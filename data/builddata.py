@@ -9,6 +9,9 @@ import xml.etree.ElementTree as ET
 
 #from lxml import etree
 from datetime import datetime
+from datetime import timedelta
+
+from geoconv import GPSConverter
 
 #******************************************************************************
 # parse input params
@@ -69,27 +72,55 @@ db = client['PubTransViz']
 
 stations = db.stations
 lines = db.lines
+connections = db.connections
+
+def autoincrement(name):
+   ret = db.counter.find_and_modify(
+       query={"_id": name},
+       update={"$inc":{"seq": 1}},
+       )
+   return ret['seq']
+
+if(not 'counter' in db.collection_names()):
+    db.counter.insert({
+    "_id": 'stations_autoincid',
+    "seq": 0
+    })
+    
+
 
 #******************************************************************************
 # write stations
 majorStations = []
+
+converter = GPSConverter()
+
+
+
 
 with open(inputFile, 'r') as csvfile:
     reader = csv.DictReader(csvfile, delimiter=',', quotechar='"')
     for row in reader:
         longitude = row['Y-Koord.']
         latitude = row['X-Koord.']
+
+        #converted = converter.LV03toWGS84(float(longitude), float(latitude), 0.0)
+        #longitude = longitude[0]
+        #latitude = converted[1]
+        
         name = row['Name']
         uid = row['Dst-Nr85']
-        station = {
-            "uid" : uid,
-            "name" : name,
-            "latitude" : latitude,
-            "longitude" : longitude,
-            "name" : name
-        }
+        
         station_in_db = lines.find_one({"uid": uid})
         if(station_in_db is None):
+            station = {
+                "_id": autoincrement('stations_autoincid'),
+                "uid" : uid,
+                "name" : name,
+                "latitude" : latitude,
+                "longitude" : longitude,
+                "name" : name
+            }
             stations.insert_one(station)
             print("added new station: " + uid)
             
@@ -182,7 +213,12 @@ def tryPopulateDbFromXML(xml_data):
                         thisCall_callAtStop_serviceDepatureElement = thisCall_callAtStopElement.find('{http://www.vdv.de/trias}ServiceDeparture')
                         thisCall_callAtStop_serviceDepature_timetabledTimeElement = thisCall_callAtStop_serviceDepatureElement.find('{http://www.vdv.de/trias}TimetabledTime')
                         departure_time = parseToDatetime(thisCall_callAtStop_serviceDepature_timetabledTimeElement.text)
-                        print("departure: " + str(departure_time)) 
+     
+                        thisCall_callAtStop_stopPointRefElement = thisCall_callAtStopElement.find('{http://www.vdv.de/trias}StopPointRef')
+                        departueStationUid = thisCall_callAtStop_stopPointRefElement.text
+                        print("departure station: " + departueStationUid)
+                        print("departure time: " + str(departure_time)) 
+                        
                         #we grab the lne number
                         serviceElement = stopEventElement.find('{http://www.vdv.de/trias}Service')
                         servicee_publishedLineNameElement = serviceElement.find('{http://www.vdv.de/trias}PublishedLineName')
@@ -198,18 +234,32 @@ def tryPopulateDbFromXML(xml_data):
                             lines.insert_one(line)
                             print("added new line: " + lineNumber)
                         
+                        arrivalTime_before = departure_time
                         for onwardCallElement in stopEventElement.findall('{http://www.vdv.de/trias}OnwardCall'):
-                            #print('OnwardCall')
                             for callAtStopElement in onwardCallElement.findall('{http://www.vdv.de/trias}CallAtStop'):
-                                #print('CallAtStop')
+                                
                                 stopPointRefElement = callAtStopElement.find('{http://www.vdv.de/trias}StopPointRef')
-                                arrial_station_uid = stopPointRefElement.text
-                                #print('StopPointRef')
+                                arrival_station_uid = stopPointRefElement.text
+
                                 serviceArrivalElemen = callAtStopElement.find('{http://www.vdv.de/trias}ServiceArrival')
                                 serviceArrival_timetabledTimeElement = serviceArrivalElemen.find('{http://www.vdv.de/trias}TimetabledTime')
-                                arival_time = parseToDatetime(serviceArrival_timetabledTimeElement.text)
-                                print("arrival: " + str(arival_time))
-                            
+                                arrival_time = parseToDatetime(serviceArrival_timetabledTimeElement.text)
+                                print("arrival: " + str(arrival_time))
+                                
+                                #look whether we already have this connection
+                                connection_in_db = connections.find_one({'start_station_uid' : departueStationUid, 'end_station_uid' : arrival_station_uid})
+                                if(connection_in_db is None):
+                                    travel_time = arrival_time - arrivalTime_before
+                                    travel_time_string = str(travel_time)
+                                    connection = {
+                                        'start_station_uid' : departueStationUid,
+                                        'end_station_uid' : arrival_station_uid,
+                                        'travel_time' : travel_time_string
+                                        }
+                                    connections.insert_one(connection)
+                                    print("added new connection: " + departueStationUid + ' - ' + arrival_station_uid)
+                               
+                                arrivalTime_before = arrival_time
 
 
 xml_data = getStops(teststation).content
