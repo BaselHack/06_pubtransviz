@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from datetime import timedelta
 
-from geoconv import GPSConverter
+from geoconv2 import GPSConverter2
 
 #******************************************************************************
 # parse input params
@@ -58,7 +58,7 @@ if(inputFile is ""):
 
 print("string import for file: " + inputFile)
 
-converter = GPSConverter()
+converter = GPSConverter2()
 
 class Station:
      def __init__(self, uid, name, longitude, latitude):
@@ -101,10 +101,9 @@ with open(inputFile, 'r') as csvfile:
         # longitude = row['Y-Koord.']
         # latitude = row['X-Koord.']
 
-        converted_coord = converter.LV03toWGS84(
-            float(row['Y-Koord.'].replace(',', '')),
-            float(row['Y-Koord.'].replace(',', '')),
-            0.0)
+        converted_coord = converter.CH1903toWGS1984(
+            float(row['X-Koord.'].replace(',', '')),
+            float(row['Y-Koord.'].replace(',', '')))
         #longitude = longitude[0]
         #latitude = converted[1]
 
