@@ -33,7 +33,8 @@ export default class App extends Component {
         maxZoom: 20,
         minPitch: 0,
         maxPitch: 85
-      }
+      },
+      stylemapbox: 'mapbox://styles/mapbox/streets-v9'
     }
 
     this._resize = this._resize.bind(this)
@@ -75,19 +76,23 @@ export default class App extends Component {
 
   render() {
 
-    const {viewport, settings} = this.state;
+    const {
+      viewport,
+      settings,
+      stylemapbox
+    } = this.state;
 
     return (
       <MapGL
         {...viewport}
         {...settings}
-        mapStyle='mapbox://styles/mapbox/streets-v9'
+        mapStyle={stylemapbox}
         onViewportChange={this._onViewportChange}
         mapboxApiAccessToken={MAPBOX_TOKEN} >
         <style>{MARKER_STYLE}</style>
         { bartStations.map(this._renderMarker) }
-        {/* <ControlPanel containerComponent={this.props.containerComponent}
-          settings={settings} onChange={this._onSettingChange} /> */}
+        <ControlPanel containerComponent={this.props.containerComponent}
+          settings={settings} onChange={this._onSettingChange} />
       </MapGL>
     );
   }

@@ -1,7 +1,7 @@
-import React, {PureComponent} from 'react';
+import React, { PureComponent } from 'react'
 
-const camelPattern = /(^|[A-Z])[a-z]*/g;
-const defaultContainer =  ({children}) => <div className="control-panel">{children}</div>;
+const camelPattern = /(^|[A-Z])[a-z]*/g
+const defaultContainer =  ({ children }) => <div className='control-panel'>{children}</div>;
 
 export default class ControlPanel extends PureComponent {
 
@@ -11,22 +11,22 @@ export default class ControlPanel extends PureComponent {
 
   _renderCheckbox(name, value) {
     return (
-      <div key={name} className="input">
+      <div key={name} className='input'>
         <label>{this._formatSettingName(name)}</label>
-        <input type="checkbox" checked={value}
+        <input type='checkbox' checked={value}
           onChange={evt => this.props.onChange(name, evt.target.checked)} />
       </div>
-    );
+    )
   }
 
   _renderNumericInput(name, value) {
     return (
-      <div key={name} className="input">
+      <div key={name} className='input'>
         <label>{this._formatSettingName(name)}</label>
-        <input type="number" value={value}
+        <input type='number' value={value}
           onChange={evt => this.props.onChange(name, Number(evt.target.value))} />
       </div>
-    );
+    )
   }
 
   _renderSetting(name, value) {
@@ -36,26 +36,17 @@ export default class ControlPanel extends PureComponent {
     case 'number':
       return this._renderNumericInput(name, value)
     default:
-      return null;
+      return null
     }
   }
 
   render() {
     const Container = this.props.containerComponent || defaultContainer
-    const {settings} = this.props
-
+    const { settings } = this.props
     return (
       <Container>
-        <h3>Public Transport </h3>
-        {/*
-        <p>Turn interactive features off/on.</p> */}
-        {/* <div className="source-link">
-          <a href="https://github.com/uber/react-map-gl/tree/master/examples/interaction" target="_new">View Code ↗</a>
-        </div> */}
-        {/* <hr /> */}
-
         { Object.keys(settings).map(name => this._renderSetting(name, settings[name])) }
       </Container>
-    );
+    )
   }
 }
