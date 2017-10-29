@@ -1,0 +1,5 @@
+Dst-Nr85,Ld,Dst-Nr,KZ,Name,Länge,NameL,Dst-Abk,GO-Nr,GO-Abk,Gde-Nr,Gemeinde,Kt.,BP,VP,VG,VD,Y-Koord.,X-Koord.,Höhe,Verkehrsmittel,Quelle_VM,Kommentar_VM,überwachen_VM,use4lineGen
+8500073,85,73,7,"Basel, Aeschenplatz",19,,BAES,823,BVB,2701,Basel,BS,*,*,,,"611,759","266,743",275,Bus_Tram,Fahrplan,,,
+8578143,85,78143,5,"Basel, Bahnhof SBB",18,,,823,BVB,2701,Basel,BS,*,*,,,"611,418","266,407",278,Bus_Tram,Fahrplan,,,1
+8500237,85,237,8,"Basel, Bankverein",17,,BSBA,823,BVB,2701,Basel,BS,*,*,,,"611,563","267,000",266,Tram,Fahrplan,,,
+8500897,85,897,9,"Basel, Barfüsserplatz",21,,,823,BVB,2701,Basel,BS,*,*,,,"611,323","267,108",268,Tram,Fahrplan,,,

@@ -255,6 +255,8 @@ def tryPopulateDbFromXML(xml_data):
 
                                 arrivalStation = stations.find_one({'uid' : arrival_station_uid})
 
+                                if(arrivalStation is None):
+                                    break
 
                                 #look whether we already have this connection
                                 connections_in_db = connections.find({'start_station_uid' : departueStationUid, 'end_station_uid' : arrival_station_uid})

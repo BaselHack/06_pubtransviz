@@ -128,6 +128,6 @@ def computeTravelTimeFromStation(stationId, stationsAsResult, traveltime):
             
             
 if __name__ == '__main':
-    print(computeHeatMap(47.551365, 7.594903))
+    print(json.dumps(computeHeatMap(47.551365, 7.594903)))
     
     
