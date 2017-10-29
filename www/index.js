@@ -37,11 +37,12 @@ const ReduxApp = (
   <Provider store={store}>
     <div>
       {/* <DevTools /> */}
-      <Router history={history}>
+      {/* <Router history={history}>
         <Switch>
           <Route exact name='home' path='/' component={Main} />
         </Switch>
-      </Router>
+      </Router> */}
+      <Main />
     </div>
   </Provider>
 )

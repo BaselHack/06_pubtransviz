@@ -3,10 +3,12 @@ import { TabGroup, Tab } from 'material-tabs'
 
 import FullScreenMap from './FullScreenMap'
 import DeckGLMap from './DeckGLMap'
+import DeckGLLines from './DeckGLLines'
 
 const tabs = [
   { linkTo: 'map', label: 'Map' },
-  { linkTo: 'heatmap', label: 'Heatmap' }
+  { linkTo: 'heatmap', label: 'Heatmap' },
+  { linkTo: 'lines', label: 'Lines' }
 ]
 
 class Main extends Component {
@@ -63,6 +65,11 @@ class Main extends Component {
         {visibleTab === 1 ?
           <DeckGLMap />
           : null }
+        {visibleTab === 2 ?
+          <DeckGLLines />
+          : null }
+
+
 
       </div>
     )
