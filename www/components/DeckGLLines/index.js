@@ -1,32 +1,42 @@
 /* global window,document */
-import React, {Component} from 'react'
-import {render} from 'react-dom'
+import React, { Component } from 'react'
+import { render } from 'react-dom'
 import MapGL from 'react-map-gl'
 import DeckGLOverlay from './deckgl-overlay.js'
 
-import { csv as requestCsv } from 'd3-request'
+import { json as requestJson } from 'd3-request'
 
-const DATA_URL = 'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/3d-heatmap/heatmap-data.csv';  // eslint-disable-line
-const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN // Set your mapbox token here
+// Set your mapbox token here
+const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN; // eslint-disable-line
 
+// Source data CSV
+const DATA_URL = {
+  AIRPORTS: 'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/line/airports.json',  // eslint-disable-line
+  FLIGHT_PATHS: 'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/line/heathrow-flights.json'  // eslint-disable-line
+}
 
-class DeckGLMap extends Component {
+export default class DeckGLLines extends Component {
 
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
       viewport: {
         ...DeckGLOverlay.defaultViewport,
         width: 500,
         height: 500
       },
-      data: null
+      flightPaths: null,
+      airports: null
     };
 
-    requestCsv(DATA_URL, (error, response) => {
+    requestJson(DATA_URL.FLIGHT_PATHS, (error, response) => {
       if (!error) {
-        const data = response.map(d => ([Number(d.lng), Number(d.lat)]));
-        this.setState({data});
+        this.setState({flightPaths: response});
+      }
+    });
+    requestJson(DATA_URL.AIRPORTS, (error, response) => {
+      if (!error) {
+        this.setState({airports: response});
       }
     });
   }
@@ -50,7 +60,7 @@ class DeckGLMap extends Component {
   }
 
   render() {
-    const { viewport, data } = this.state
+    const {viewport, flightPaths, airports} = this.state;
 
     return (
       <MapGL
@@ -58,13 +68,11 @@ class DeckGLMap extends Component {
         mapStyle='mapbox://styles/mapbox/dark-v9'
         onViewportChange={this._onViewportChange.bind(this)}
         mapboxApiAccessToken={MAPBOX_TOKEN}>
-        <DeckGLOverlay
-          viewport={viewport}
-          data={data || []}
-        />
+        <DeckGLOverlay viewport={viewport}
+          strokeWidth={3}
+          flightPaths={flightPaths}
+          airports={airports} />
       </MapGL>
     );
   }
 }
-
-export default DeckGLMap
