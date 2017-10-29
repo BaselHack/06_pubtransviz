@@ -1,13 +1,13 @@
 /* global window,document */
-import React, {Component} from 'react';
-import {render} from 'react-dom';
-import MapGL from 'react-map-gl';
-import DeckGLOverlay from './deckgl-overlay.js';
+import React, {Component} from 'react'
+import {render} from 'react-dom'
+import MapGL from 'react-map-gl'
+import DeckGLOverlay from './deckgl-overlay.js'
 
-import {csv as requestCsv} from 'd3-request'
+import { csv as requestCsv } from 'd3-request'
 
 const DATA_URL = 'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/3d-heatmap/heatmap-data.csv';  // eslint-disable-line
-const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN; // Set your mapbox token here
+const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN // Set your mapbox token here
 
 
 class DeckGLMap extends Component {
