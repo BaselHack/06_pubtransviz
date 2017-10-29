@@ -266,8 +266,10 @@ def tryPopulateDbFromXML(xml_data):
                                     connection = {
                                         'start_station_uid' : departueStationUid,
                                         'start_station_id' : departureStationId,
+                                        'start_station_coordinate' : departureStation['coordinates'],
                                         'end_station_uid' : arrival_station_uid,
-                                        'end_station_id' :arrivalStation['_id'],
+                                        'end_station_id' : arrivalStation['_id'],
+                                        'end_station_coordinate' : arrivalStation['coordinates'],
                                         'travel_time' : travel_time_string
                                         }
                                     connections.insert_one(connection)
