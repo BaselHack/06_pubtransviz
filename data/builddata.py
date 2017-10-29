@@ -112,14 +112,9 @@ with open(inputFile, 'r') as csvfile:
 
         name = row['Name']
         uid = row['Dst-Nr85']
-<<<<<<< Updated upstream
-
-        station_in_db = lines.find_one({"uid": uid})
-        if(station_in_db is None):
-=======
         station = None
         if(stations.find({"uid": uid}).count is 0):
->>>>>>> Stashed changes
+
             station = {
                 "_id": autoincrement('stations_autoincid'),
                 "uid" : uid,
@@ -243,8 +238,8 @@ def tryPopulateDbFromXML(xml_data):
                                 lines.insert_one(line)
                                 #print("added new line: " + lineNumber)
                                 
-                        departureStation = stations.find({'uid' : departueStationUid})
-
+                        departureStation = stations.find_one({'uid' : departueStationUid})
+                        departureStationId = departureStation['_id']
 
                         arrivalTime_before = departure_time
                         for onwardCallElement in stopEventElement.findall('{http://www.vdv.de/trias}OnwardCall'):
@@ -258,7 +253,7 @@ def tryPopulateDbFromXML(xml_data):
                                 arrival_time = parseToDatetime(serviceArrival_timetabledTimeElement.text)
                                 #print("arrival: " + str(arrival_time))
 
-                                arrivalStation = stations.find({'uid' : arrival_station_uid})
+                                arrivalStation = stations.find_one({'uid' : arrival_station_uid})
 
 
                                 #look whether we already have this connection
@@ -268,7 +263,7 @@ def tryPopulateDbFromXML(xml_data):
                                     travel_time_string = str(travel_time)
                                     connection = {
                                         'start_station_uid' : departueStationUid,
-                                        'start_station_id' : departureStation['_id'],
+                                        'start_station_id' : departureStationId,
                                         'end_station_uid' : arrivaltation_uid,
                                         'end_station_id' :arrivalStation['_id'],
                                         'travel_time' : travel_time_string
