@@ -179,6 +179,8 @@ if __name__ == "__main__":
     lv03 = converter.WGS84toLV03(wgs84[0], wgs84[1], wgs84[2])
     wgs84_2 = converter.LV03toWGS84(lv03[0], lv03[1], lv03[2])
 
+    print (lv03)
+
     print ("WGS84: ", wgs84)
     print ("LV03: ", lv03)
     print ("WGS84:", wgs84_2)

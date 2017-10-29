@@ -120,8 +120,8 @@ with open(inputFile, 'r') as csvfile:
                 "_id": autoincrement('stations_autoincid'),
                 "uid" : uid,
                 "name" : name,
-                "latitude" : converted_coord[0],
-                "longitude" : converted_coord[1],
+                "latitude" : float(converted_coord[0]),
+                "longitude" : float(converted_coord[1]),
                 "coordinates": [converted_coord[0], converted_coord[1]],
                 "name" : name
             }
@@ -197,7 +197,7 @@ def tryPopulateDbFromXML(xml_data):
                         thisCall_callAtStop_stopPointRefElement = thisCall_callAtStopElement.find('{http://www.vdv.de/trias}StopPointRef')
                         departueStationUid = thisCall_callAtStop_stopPointRefElement.text
                         #print("departure station: " + departueStationUid)
-                        #print("departure time: " + str(departure_time)) 
+                        #print("departure time: " + str(departure_time))
 
                         serviceElement = stopEventElement.find('{http://www.vdv.de/trias}Service')
                         servicee_publishedLineNameElement = serviceElement.find('{http://www.vdv.de/trias}PublishedLineName')
@@ -213,7 +213,7 @@ def tryPopulateDbFromXML(xml_data):
                                 }
                                 lines.insert_one(line)
                                 #print("added new line: " + lineNumber)
-                        
+
                         arrivalTime_before = departure_time
                         for onwardCallElement in stopEventElement.findall('{http://www.vdv.de/trias}OnwardCall'):
                             for callAtStopElement in onwardCallElement.findall('{http://www.vdv.de/trias}CallAtStop'):
@@ -225,7 +225,7 @@ def tryPopulateDbFromXML(xml_data):
                                 serviceArrival_timetabledTimeElement = serviceArrivalElemen.find('{http://www.vdv.de/trias}TimetabledTime')
                                 arrival_time = parseToDatetime(serviceArrival_timetabledTimeElement.text)
                                 #print("arrival: " + str(arrival_time))
-                                
+
 
                                 #look whether we already have this connection
                                 if(connections.find({'start_station_uid' : departueStationUid, 'end_station_uid' : arrival_station_uid}).count is 0):
@@ -238,7 +238,7 @@ def tryPopulateDbFromXML(xml_data):
                                         }
                                     connections.insert_one(connection)
                                     #print("added new connection: " + departueStationUid + ' - ' + arrival_station_uid)
-                               
+
                                 arrivalTime_before = arrival_time
 
 
@@ -246,4 +246,3 @@ for majorStation in majorStations:
     print('populating from station: ' + majorStation['uid'])
     xml_data = getStops(majorStation).content
     tryPopulateDbFromXML(xml_data)
-                
