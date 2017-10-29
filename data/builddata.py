@@ -7,6 +7,9 @@ import csv
 import requests
 import xml.etree.ElementTree as ET
 
+#from lxml import etree
+from datetime import datetime
+
 #******************************************************************************
 # parse input params
 try:
@@ -65,6 +68,7 @@ client = MongoClient()
 db = client['PubTransViz']
 
 stations = db.stations
+lines = db.lines
 
 #******************************************************************************
 # write stations
@@ -84,17 +88,24 @@ with open(inputFile, 'r') as csvfile:
             "longitude" : longitude,
             "name" : name
         }
-        #station_id = stations.insert_one(station).inserted_id
-
+        station_in_db = lines.find_one({"uid": uid})
+        if(station_in_db is None):
+            stations.insert_one(station)
+            print("added new station: " + uid)
+            
         if(row['use4lineGen'] is "1"):
             majorStations.append(station)
 
 
 teststation = majorStations[0]
+
+
 # make a test-request for that given station
 url = 'https://api.opentransportdata.swiss/trias'
+
+
 def getStops(station):
-    return '''<?xml version="1.0" encoding="UTF-8"?>
+    xml = '''<?xml version="1.0" encoding="UTF-8"?>
             <Trias version="1.1" xmlns="http://www.vdv.de/trias" xmlns:siri="http://www.siri.org.uk/siri" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                 <ServiceRequest>
                     <siri:RequestTimestamp>2016-06-27T13:34:00</siri:RequestTimestamp>
@@ -103,12 +114,12 @@ def getStops(station):
                         <StopEventRequest>
                             <Location>
                                 <LocationRef>
-                                    <StopPointRef>8500010</StopPointRef>
+                                    <StopPointRef>8500073</StopPointRef>
                                 </LocationRef>
                                 <DepArrTime>2017-10-27T10:00:00</DepArrTime>
                             </Location>
                             <Params>
-                                <NumberOfResults>200</NumberOfResults>
+                                <NumberOfResults>2</NumberOfResults>
                                 <StopEventType>departure</StopEventType>
                                 <IncludePreviousCalls>true</IncludePreviousCalls>
                                 <IncludeOnwardCalls>true</IncludeOnwardCalls>
@@ -118,23 +129,89 @@ def getStops(station):
                     </RequestPayload>
                 </ServiceRequest>
             </Trias>'''
+            
+    headers = {'Content-Type': 'application/xml', 'Authorization' : '57c5dbbbf1fe4d00010000189db17b8e65cf45027f3bd01df4eabfbe'} # set what your server accepts
+    response = requests.post(url, data=xml, headers=headers)
+    return response
 
 # Parsing xml string
-root = ET.fromstring(getStops(teststation))
-for el in root.findall('{http://www.vdv.de/trias}ServiceRequest'):
-    for sub in el:
-        if len(sub.text.strip()) > 0:
-            print (sub.tag.split('}')[1])
-            print (sub.text)
-        for sub2 in sub:
-            if len(sub2.text.strip()) > 0:
-                print (sub2.tag.split('}')[1])
-                print (sub2.text)
-            for sub3 in sub2:
-                if len(sub3.text.strip()) > 0:
-                    print (sub3.tag.split('}')[1])
-                    print (sub3.text)
-                for sub4 in sub3:
-                    if len(sub4.text.strip()) > 0:
-                        print (sub4.tag.split('}')[1])
-                        print (sub4.text)
+#root = ET.fromstring(getStops(teststation).content)
+
+#for el in root.findall('{http://www.vdv.de/trias}OnwardCall'):
+    #for sub in el:
+        #if not sub.text is None:
+            #if (len(sub.text.strip()) > 0):
+                #print (sub.tag.split('}')[1])
+                #print (sub.text)
+            #for sub2 in sub:
+                #if len(sub2.text.strip()) > 0:
+                    #print (sub2.tag.split('}')[1])
+                    #print (sub2.text)
+                #for sub3 in sub2:
+                    #if len(sub3.text.strip()) > 0:
+                        #print (sub3.tag.split('}')[1])
+                        #print (sub3.text)
+                    #for sub4 in sub3:
+                        #if len(sub4.text.strip()) > 0:
+                            #print (sub4.tag.split('}')[1])
+                            #print (sub4.text)
+        #else:
+            ##here we should
+            #stops = sub.findall('StopEventResponse')
+            #for stop in stops:
+                #print(stop.text)
+            
+                            
+
+
+
+def parseToDatetime(string_date):
+    return datetime.strptime(string_date, "%Y-%m-%dT%H:%M:%SZ")
+
+def tryPopulateDbFromXML(xml_data):
+    root = ET.fromstring(xml_data)
+    # iterate result tree
+    for el in root.findall('{http://www.vdv.de/trias}ServiceDelivery'):
+        for deliveryPayloadElement in el.findall('{http://www.vdv.de/trias}DeliveryPayload'):
+            for stopEventResponseElement in deliveryPayloadElement.findall('{http://www.vdv.de/trias}StopEventResponse'):
+                for stopEventResultElement in stopEventResponseElement.findall('{http://www.vdv.de/trias}StopEventResult'):
+                    for stopEventElement in stopEventResultElement.findall('{http://www.vdv.de/trias}StopEvent'):
+                        #This is the level we are interessted in, first we want to grab the destination time
+                        thisCallElement = stopEventElement.find('{http://www.vdv.de/trias}ThisCall')
+                        thisCall_callAtStopElement = thisCallElement.find('{http://www.vdv.de/trias}CallAtStop')
+                        thisCall_callAtStop_serviceDepatureElement = thisCall_callAtStopElement.find('{http://www.vdv.de/trias}ServiceDeparture')
+                        thisCall_callAtStop_serviceDepature_timetabledTimeElement = thisCall_callAtStop_serviceDepatureElement.find('{http://www.vdv.de/trias}TimetabledTime')
+                        departure_time = parseToDatetime(thisCall_callAtStop_serviceDepature_timetabledTimeElement.text)
+                        print("departure: " + str(departure_time)) 
+                        #we grab the lne number
+                        serviceElement = stopEventElement.find('{http://www.vdv.de/trias}Service')
+                        servicee_publishedLineNameElement = serviceElement.find('{http://www.vdv.de/trias}PublishedLineName')
+                        servicee_publishedLineName_textElement = servicee_publishedLineNameElement.find('{http://www.vdv.de/trias}Text')
+                        
+                        #look whether we have the line already in the database, if not add it
+                        lineNumber = servicee_publishedLineName_textElement.text
+                        line = lines.find_one({"number": lineNumber})
+                        if(line is None):
+                            line = {
+                                "number" : lineNumber
+                            }
+                            lines.insert_one(line)
+                            print("added new line: " + lineNumber)
+                        
+                        for onwardCallElement in stopEventElement.findall('{http://www.vdv.de/trias}OnwardCall'):
+                            #print('OnwardCall')
+                            for callAtStopElement in onwardCallElement.findall('{http://www.vdv.de/trias}CallAtStop'):
+                                #print('CallAtStop')
+                                stopPointRefElement = callAtStopElement.find('{http://www.vdv.de/trias}StopPointRef')
+                                arrial_station_uid = stopPointRefElement.text
+                                #print('StopPointRef')
+                                serviceArrivalElemen = callAtStopElement.find('{http://www.vdv.de/trias}ServiceArrival')
+                                serviceArrival_timetabledTimeElement = serviceArrivalElemen.find('{http://www.vdv.de/trias}TimetabledTime')
+                                arival_time = parseToDatetime(serviceArrival_timetabledTimeElement.text)
+                                print("arrival: " + str(arival_time))
+                            
+
+
+xml_data = getStops(teststation).content
+tryPopulateDbFromXML(xml_data)
+                
