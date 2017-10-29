@@ -32,8 +32,8 @@ class DeckGLMap extends Component {
   }
 
   componentDidMount() {
-    window.addEventListener('resize', this._resize.bind(this));
-    this._resize();
+    window.addEventListener('resize', this._resize.bind(this))
+    this._resize()
   }
 
   _resize() {

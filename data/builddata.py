@@ -104,7 +104,7 @@ with open(inputFile, 'r') as csvfile:
         converted_coord = converter.LV03toWGS84(
             float(longitude.replace(',', '.')),
             float(latitude.replace(',', '.')),
-            0.0)
+            1.0)
         #longitude = longitude[0]
         #latitude = converted[1]
 
@@ -120,6 +120,7 @@ with open(inputFile, 'r') as csvfile:
                 "name" : name,
                 "latitude" : converted_coord[0],
                 "longitude" : converted_coord[1],
+                "coordinates": [converted_coord[0], converted_coord[1]],
                 "name" : name
             }
             stations.insert_one(station)

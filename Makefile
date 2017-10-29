@@ -18,9 +18,10 @@ front-prod:
 
 api-dev:
 	cd $(API_PATH) \
-	&& sudo pip install -r requirements.txt \
+	&& sudo pip3 install -r requirements.txt \
 	&& python3 main.py
 
 feeddb1:
 	cd $(DATA_PATH) \
+	&& sudo pip3 install -r requirements.txt \
 	&& python3 builddata.py -i StationsBaselArea.csv

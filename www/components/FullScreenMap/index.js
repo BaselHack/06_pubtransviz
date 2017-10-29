@@ -4,7 +4,9 @@ import {render} from 'react-dom';
 import MapGL, {Marker} from 'react-map-gl';
 import ControlPanel from './control-panel';
 
-import bartStations from './bart-station.json';
+import { json as requestJson } from 'd3-request'
+
+import tramStations from './bart-station.json';
 
 const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN; // Set your mapbox token here
 import MARKER_STYLE from './marker-style';
@@ -14,6 +16,7 @@ export default class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      tramStations: [],
       viewport: {
         latitude: 47.559601,
         longitude: 7.588576,
@@ -42,6 +45,17 @@ export default class App extends Component {
 
   componentDidMount() {
     window.addEventListener('resize', this._resize);
+
+    requestJson('http://localhost:8080/api/v1/stations', (error, response) => {
+
+      console.log(response)
+
+      if (!error) {
+        this.setState({tramStations: response});
+      }
+    });
+
+
     this._resize();
   }
 
@@ -79,7 +93,8 @@ export default class App extends Component {
     const {
       viewport,
       settings,
-      stylemapbox
+      stylemapbox,
+      tramStations
     } = this.state;
 
     return (
@@ -90,7 +105,7 @@ export default class App extends Component {
         onViewportChange={this._onViewportChange}
         mapboxApiAccessToken={MAPBOX_TOKEN} >
         <style>{MARKER_STYLE}</style>
-        { bartStations.map(this._renderMarker) }
+        { tramStations.map(this._renderMarker) }
         <ControlPanel containerComponent={this.props.containerComponent}
           settings={settings} onChange={this._onSettingChange} />
       </MapGL>
