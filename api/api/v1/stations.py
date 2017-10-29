@@ -59,7 +59,7 @@ def buildConnectionMatrix():
 connectionMatrix = buildConnectionMatrix()
 
 def computeHeatMap(longitude, latitude):
-    chosen_station = stations.find({'longitude': {$near: longitude}, 'longitude': {$near: latitude}})
+    chosen_station = stations.find({'longitude': {'$near': longitude}, 'longitude': {'$near': latitude}})
     
     # maybe this can be done better, but we are in a hurry, I just need the count
     stations = json.loads(dumps(state.find({})))
@@ -69,12 +69,18 @@ def computeHeatMap(longitude, latitude):
     for(i in range(0, count)):
         stationsAsResult[i] = None
     
-    stationsAsResult = computeTravelTimeFromStation(int(chosen_station['_id']), stationsAsResult)
+    startStationId = int(chosen_station['_id'])
+    
+    stationsAsResult[startStationId] = stations.find({'_id' :  startStationId})
+    stationsAsResult[startStationId]['travelTime'] = 0 # travel time is zero at starting point
+    
+    traveltime = 0
+    stationsAsResult = computeTravelTimeFromStation(startStationId, stationsAsResult, traveltime)
     return stationsAsResult
 
 
             
-def computeTravelTimeFromStation(stationId, stationsAsResult):
+def computeTravelTimeFromStation(stationId, stationsAsResult, traveltime):
     
     #break condition, don't continue to iterate if all stations are calcualted
     
@@ -98,11 +104,10 @@ def computeTravelTimeFromStation(stationId, stationsAsResult):
             if(arrivalStation is None):
                 stationsAsResult[arrivalStationid] = stations.find({'_id' : arrivalStationid})
                 arrivalStation = stationsAsResult[arrivalStationid]
+            currentTravelTime = traveltime + float(connection['travel_time'])
+            arrivalStation['travelTime'] = currentTravelTime
             
-            travelTime = connection['travel_time']
-            arrivalStation['travelTime'] = travelTime
-            
-            stationsAsResult = computeTravelTimeFromStation(int(arrivalStation['_id']), stationsAsResult)
+            stationsAsResult = computeTravelTimeFromStation(int(arrivalStation['_id']), stationsAsResult, currentTravelTime)
             
     return stationsAsResult
                 
