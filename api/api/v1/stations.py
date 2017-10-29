@@ -40,39 +40,39 @@ def buildConnectionMatrix():
     stations = json.loads(dumps(state.find({})))
 
     count = len(stations)
-    
+
     db = client['PubTransViz']
     connections = db.connections
     stations = db.stations
-    
+
     connectionMatrix = []
     for x in range(0, count):
         connectionMatrix.append([])
-        
+
         stationX = stations.find_one({'_id' : x})
-        
+
         for y in range(0, count):
-    
+
             stationY = stations.find_one({'_id' : y})
             connection = connections.find_one({'start_station_uid' : stationX['uid'], 'end_station_uid' : stationY['uid']})
             connectionMatrix[x].append(connection) #most will be None
     print("building in-memory connection matrix done!")
-    
 
-connectionMatrix = buildConnectionMatrix()
+
+# connectionMatrix = buildConnectionMatrix()
 
 def computeHeatMap(longitude, latitude):
     db = client['PubTransViz']
     connections = db.connections
     stations = db.stations
-    
-    
+
+
     chosen_station = stations.find_one({'longitude': {'$near': longitude}, 'longitude': {'$near': latitude}})
-    
+
     # maybe this can be done better, but we are in a hurry, I just need the count
     stations = json.loads(dumps(state.find({})))
     count = stations.count()
-    
+
 
     stationsAsResult = []
     for i in range(0, count):
@@ -96,16 +96,16 @@ def computeTravelTimeFromStation(stationId, stationsAsResult, traveltime):
     for station in stationsAsResult:
         if(station is None):
             allStationsCalcualted = false
-    
+
     if(allStationsCalcualted):
         return stationsAsResult
-    
-    
+
+
     db = client['PubTransViz']
     connections = db.connections
     stations = db.stations
-    
-    
+
+
 
     #actual calculation
 
@@ -125,9 +125,7 @@ def computeTravelTimeFromStation(stationId, stationsAsResult, traveltime):
             stationsAsResult = computeTravelTimeFromStation(int(arrivalStation['_id']), stationsAsResult, currentTravelTime)
 
     return stationsAsResult
-            
-            
+
+
 if __name__ == '__main':
     print(json.dumps(computeHeatMap(47.551365, 7.594903)))
-    
-    

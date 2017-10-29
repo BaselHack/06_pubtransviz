@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_restful import Api
-from api.v1 import stations
+from api.v1 import stations, connections as cc
 
 from flask_cors import CORS
 
@@ -11,6 +11,8 @@ CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
 api = Api(app)
 # Stations Endpoint
 api.add_resource(stations.StationsCtrl, '/api/v1/stations')
+api.add_resource(cc.ConnectionsCtrl, '/api/v1/connections')
+
 
 @app.route('/')
 def default_route():

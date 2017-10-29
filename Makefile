@@ -21,6 +21,11 @@ api-dev:
 	&& sudo pip3 install -r requirements.txt \
 	&& python3 main.py
 
+feeddb-light:
+	cd $(DATA_PATH) \
+	&& sudo pip3 install -r requirements.txt \
+	&& python3 builddata.py -i StationsBaselAreaSmall.csv
+
 feeddb1:
 	cd $(DATA_PATH) \
 	&& sudo pip3 install -r requirements.txt \
