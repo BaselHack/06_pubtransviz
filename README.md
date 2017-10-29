@@ -1,7 +1,7 @@
 # Getting started
 
 ## React Application
---
+
 ### Instructions
 
 1) create a `.env` file in `www` folder, following the structure of `.env.default`
