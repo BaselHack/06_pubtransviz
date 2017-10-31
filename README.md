@@ -8,3 +8,11 @@
 2) replace the credentials in it, such as your `MAPBOX_TOKEN`
 3) run `make front-dev`
 4) you should see your app at `http://localhost:9000`
+
+
+### Build database
+
+To populate the database with data execute `builddata.py` in the `data` folder. This requires to set
+the API key of the trias web-service (you can request it from https://opentransportdata.swiss/, format `VDV 431 Default`)
+
+`export TRIAS_API_KEY = "your key"``

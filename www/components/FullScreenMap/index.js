@@ -51,7 +51,7 @@ export default class App extends Component {
 
     requestJson('http://localhost:8080/api/v1/stations', (error, response) => {
 
-      console.log(response)
+      // console.log(response)
       if (!error) {
         this.setState({tramStations: response});
       }

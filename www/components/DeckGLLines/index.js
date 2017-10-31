@@ -29,11 +29,11 @@ export default class DeckGLLines extends Component {
       airports: null
     };
 
-    // requestJson(DATA_URL.FLIGHT_PATHS, (error, response) => {
-    //   if (!error) {
-    //     this.setState({flightPaths: response});
-    //   }
-    // });
+    requestJson('http://localhost:8080/api/v1/connections', (error, response) => {
+      if (!error) {
+        this.setState({ flightPaths: response });
+      }
+    })
     // requestJson(DATA_URL.AIRPORTS, (error, response) => {
     //   if (!error) {
     //     this.setState({airports: response});

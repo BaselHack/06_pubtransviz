@@ -163,8 +163,11 @@ def getStops(station):
                     </RequestPayload>
                 </ServiceRequest>
             </Trias>'''
-
-    headers = {'Content-Type': 'application/xml', 'Authorization' : '57c5dbbbf1fe4d00010000189db17b8e65cf45027f3bd01df4eabfbe'} # set what your server accepts
+    if 'TRIAS_API_KEY' not in os.environ:
+        print('Missing api key TRIAS_API_KEY')
+        sys.exit(2)
+    api_key = os.environ['TRIAS_API_KEY']
+    headers = {'Content-Type': 'application/xml', 'Authorization' : api_key}
     response = requests.post(url, data=xml, headers=headers)
     return response
 
@@ -263,14 +266,22 @@ def tryPopulateDbFromXML(xml_data):
                                 if(connections_in_db.count() is 0):
                                     travel_time = arrival_time - arrivalTime_before
                                     travel_time_string = str(travel_time)
+
+                                    cpy_departureStation = departureStation['coordinates']
+                                    cpy_departureStation.append(0)
+
+                                    cpy_arrivalStation = arrivalStation['coordinates']
+                                    cpy_arrivalStation.append(0)
+
                                     connection = {
                                         'start_station_uid' : departueStationUid,
                                         'start_station_id' : departureStationId,
-                                        'start_station_coordinate' : departureStation['coordinates'],
+                                        'start' : cpy_departureStation,
                                         'end_station_uid' : arrival_station_uid,
                                         'end_station_id' : arrivalStation['_id'],
-                                        'end_station_coordinate' : arrivalStation['coordinates'],
-                                        'travel_time' : travel_time_string
+                                        'end' : cpy_arrivalStation,
+                                        'travel_time' : travel_time_string,
+                                        'name': ''
                                         }
                                     connections.insert_one(connection)
                                     print("added new connection: " + departueStationUid + ' - ' + arrival_station_uid)
