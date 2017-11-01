@@ -15,4 +15,6 @@
 To populate the database with data execute `builddata.py` in the `data` folder. This requires to set
 the API key of the trias web-service (you can request it from https://opentransportdata.swiss/, format `VDV 431 Default`)
 
-`export TRIAS_API_KEY = "your key"``
+```shell
+export TRIAS_API_KEY = 'your key'
+```
