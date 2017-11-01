@@ -7,9 +7,7 @@ import csv
 import requests
 import xml.etree.ElementTree as ET
 
-#from lxml import etree
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from geoconv2 import GPSConverter2
 

@@ -3,7 +3,8 @@ from pymongo import MongoClient
 import json
 
 from bson.json_util import dumps
-from datetime import timedelta
+
+from datetime import datetime, timedelta
 
 
 class StationsCtrl(Resource):
@@ -58,6 +59,7 @@ def buildConnectionMatrix():
             connection = connections.find_one({'start_station_uid' : stationX['uid'], 'end_station_uid' : stationY['uid']})
             connectionMatrix[x].append(connection) #most will be None
     print("building in-memory connection matrix done!")
+    return connectionMatrix
 
 #connectionMatrix = buildConnectionMatrix()
 connectionMatrix = None
@@ -79,7 +81,6 @@ def computeHeatMap(longitude, latitude):
     jsonStations = json.loads(dumps(state.find({})))
     count = len(jsonStations)
 
-
     stationsAsResult = []
     for i in range(0, count):
         stationsAsResult.append(None)
@@ -88,14 +89,17 @@ def computeHeatMap(longitude, latitude):
     print('station id ' + str(startStationId))
     stationsAsResult[startStationId] = stations.find_one({'_id' :  startStationId})
 
-    stationsAsResult[startStationId]['travelTime'] = 0 # travel time is zero at starting point
+    traveltime = parseToTimeDelta("0:00:00")
+    stationsAsResult[startStationId]['travelTime'] = str(traveltime) # travel time is zero at starting point
 
-    traveltime = 0
     stationsAsResult = computeTravelTimeFromStation(startStationId, stationsAsResult, traveltime)
     return stationsAsResult
 
-def parseToDatetime(string_date):
-    return datetime.datetime.strptime(s,"%H:%M:%S")
+def parseToTimeDelta(string_date):
+    t = datetime.strptime(string_date,"%H:%M:%S")
+    #use datetime's hour, min and sec properties to build a timedelta
+    delta = timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+    return delta
 
 def computeTravelTimeFromStation(stationId, stationsAsResult, traveltime):
     global connectionMatrix
@@ -104,7 +108,6 @@ def computeTravelTimeFromStation(stationId, stationsAsResult, traveltime):
     allStationsCalcualted = True
     for station in stationsAsResult:
         if(station is None):
-
             allStationsCalcualted = False
 
     if(allStationsCalcualted):
@@ -130,12 +133,14 @@ def computeTravelTimeFromStation(stationId, stationsAsResult, traveltime):
             if(arrivalStation is None):
                 stationsAsResult[arrivalStationid] = stations.find_one({'_id' : arrivalStationid})
                 arrivalStation = stationsAsResult[arrivalStationid]
-            currentTravelTime = traveltime + float(connection['travel_time'])
-            arrivalStation['travelTime'] = currentTravelTime
+            currentTravelTime = traveltime + parseToTimeDelta(connection['travel_time'])
+            arrivalStation['travelTime'] = str(currentTravelTime)
 
             stationsAsResult = computeTravelTimeFromStation(int(arrivalStation['_id']), stationsAsResult, currentTravelTime)
 
     return stationsAsResult
 
-if __name__ == '__main':
+
+# entry point for testing
+if __name__ == '__main__':
     print(json.dumps(computeHeatMap(47.551365, 7.594903)))
