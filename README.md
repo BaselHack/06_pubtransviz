@@ -10,7 +10,9 @@
 4) you should see your app at `http://localhost:9000`
 
 
-### Build database
+## Back-end
+
+### Initialize content
 
 To populate the database with data execute `builddata.py` in the `data` folder. This requires to set
 the API key of the trias web-service (you can request it from https://opentransportdata.swiss/, format `VDV 431 Default`)
