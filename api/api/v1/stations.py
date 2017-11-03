@@ -103,8 +103,10 @@ def parseToTimeDelta(string_date):
 
 def computeTravelTimeFromStation(stationId, stationsAsResult, traveltime):
     global connectionMatrix
-    #break condition, don't continue to iterate if all stations are calcualted
 
+    print('calculate travel time from a station')
+
+    #break condition, don't continue to iterate if all stations are calcualted
     allStationsCalcualted = True
     for station in stationsAsResult:
         if(station is None):
@@ -113,30 +115,36 @@ def computeTravelTimeFromStation(stationId, stationsAsResult, traveltime):
     if(allStationsCalcualted):
         return stationsAsResult
 
+
+    # ensure we have the connection matrix created
+    if(connectionMatrix is None):
+        connectionMatrix = buildConnectionMatrix()
+
     client = MongoClient()
     db = client['PubTransViz']
     connections = db.connections
     stations = db.stations
 
-    #actual calculation
+    departueStation = stations.find_one({'_id' : stationId})
+    print('from ' + departueStation['name'])
 
-    if(connectionMatrix is None):
-        connectionMatrix = buildConnectionMatrix()
 
     connectionRow = connectionMatrix[stationId]
     for connection in connectionRow:
         if(connection is not None):
+
             # check if we already have the station in the list, if not add it with the travel-times
             arrivalStationid = int(connection['end_station_id'])
             arrivalStation = stationsAsResult[arrivalStationid]
 
+            print('to ' + connection['end_station_name'])
+
             if(arrivalStation is None):
                 stationsAsResult[arrivalStationid] = stations.find_one({'_id' : arrivalStationid})
                 arrivalStation = stationsAsResult[arrivalStationid]
-            currentTravelTime = traveltime + parseToTimeDelta(connection['travel_time'])
-            arrivalStation['travelTime'] = str(currentTravelTime)
-
-            stationsAsResult = computeTravelTimeFromStation(int(arrivalStation['_id']), stationsAsResult, currentTravelTime)
+                currentTravelTime = traveltime + parseToTimeDelta(connection['travel_time'])
+                arrivalStation['travelTime'] = str(currentTravelTime)
+                stationsAsResult = computeTravelTimeFromStation(int(arrivalStation['_id']), stationsAsResult, currentTravelTime)
 
     return stationsAsResult
 

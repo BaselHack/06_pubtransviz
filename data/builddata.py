@@ -2,7 +2,7 @@ import getopt
 import sys
 import os
 
-from pymongo import MongoClient
+from pymongo import MongoClient, GEO2D
 import csv
 import requests
 import xml.etree.ElementTree as ET
@@ -58,14 +58,19 @@ print("Importing data from file: " + inputFile)
 
 converter = GPSConverter2()
 
+#******************************************************************************
+# prepare database
 
 client = MongoClient()
 db = client['PubTransViz']
 
+# collections
 stations = db.stations
 lines = db.lines
 connections = db.connections
 
+# define autoincrement for index
+# (we use this when we read data)
 def autoincrement(name):
    ret = db.counter.find_and_modify(
        query={"_id": name},
@@ -78,6 +83,9 @@ if(not 'counter' in db.collection_names()):
     "_id": 'stations_autoincid',
     "seq": 0
     })
+
+# make sure we have a geo-index for the coordinates
+stations.create_index([("coordinates", GEO2D)])
 
 
 #******************************************************************************
