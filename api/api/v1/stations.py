@@ -27,15 +27,18 @@ class StationsCtrl(Resource):
         longitude = arguments['longitude']
         latitude = arguments['latitude']
 
-        if(longitude is not None and latitude is not None):
-            computeHeatMap(longitude, latitude)
+        stations = None
 
-        dbname = 'PubTransViz'
-        dbcoll = 'stations'
-        client = MongoClient()
-        state = client[dbname][dbcoll]
-        stations = json.loads(dumps(state.find({})))
-        client.close()
+        if(longitude is not None and latitude is not None):
+            stations = json.loads(dumps(computeHeatMap(longitude, latitude)))
+        else:
+            dbname = 'PubTransViz'
+            dbcoll = 'stations'
+            client = MongoClient()
+            state = client[dbname][dbcoll]
+            stations = json.loads(dumps(state.find({})))
+            client.close()
+
         return stations
 
 
@@ -57,7 +60,7 @@ def buildConnectionMatrix():
     progress = 0
     connectionMatrix = []
 
-    progressBar = ProgressBar(widgets=['matric items: ', Counter() , ' ',Percentage(), Bar(), ETA()], maxval=num_matrix_entries).start()
+    progressBar = ProgressBar(widgets=['matrix items: ', Counter() , ' ',Percentage(), Bar(), ETA()], maxval=num_matrix_entries).start()
 
     for x in range(0, count):
         connectionMatrix.append([])
@@ -87,6 +90,9 @@ def computeHeatMap(longitude, latitude):
     db = client['PubTransViz']
     connections = db.connections
     stations = db.stations
+
+    longitude = float(longitude)
+    latitude = float(latitude)
 
     chosen_station = stations.find_one({'coordinates': {'$near': [longitude, latitude]}})
     print('selected station ' + chosen_station['uid'])
@@ -165,4 +171,4 @@ def computeTravelTimeFromStation(stationId, stationsAsResult, traveltime):
 
 # entry point for testing
 if __name__ == '__main__':
-    print(json.dumps(computeHeatMap(47.551365, 7.594903)))
+    print(json.dumps(computeHeatMap("47.551365", "7.594903")))
