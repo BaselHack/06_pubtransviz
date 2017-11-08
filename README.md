@@ -20,3 +20,10 @@ the API key of the trias web-service (you can request it from https://opentransp
 ```shell
 export TRIAS_API_KEY = 'your key'
 ```
+
+#### Requirements
+
+The following python modules are required for the back-end:
+
+* pymongo
+* progressbar2 (`pip install progressbar2`)

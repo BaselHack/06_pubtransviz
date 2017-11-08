@@ -7,6 +7,12 @@ from bson.json_util import dumps
 from datetime import datetime, timedelta
 
 
+from progressbar import AnimatedMarker, Bar, BouncingBar, Counter, ETA, \
+    FileTransferSpeed, FormatLabel, Percentage, \
+    ProgressBar, ReverseBar, RotatingMarker, \
+    SimpleProgress, Timer, AdaptiveETA, AdaptiveTransferSpeed
+
+
 class StationsCtrl(Resource):
     # ${HOSTNAME}/v1/api/stations
     # will return an array of stations (JSON objects)
@@ -47,17 +53,25 @@ def buildConnectionMatrix():
     connections = db.connections
     stations = db.stations
 
+    num_matrix_entries = count*count
+    progress = 0
     connectionMatrix = []
+
+    progressBar = ProgressBar(widgets=['matric items: ', Counter() , ' ',Percentage(), Bar(), ETA()], maxval=num_matrix_entries).start()
+
     for x in range(0, count):
         connectionMatrix.append([])
-
         stationX = stations.find_one({'_id' : x})
-
         for y in range(0, count):
-
             stationY = stations.find_one({'_id' : y})
             connection = connections.find_one({'start_station_uid' : stationX['uid'], 'end_station_uid' : stationY['uid']})
             connectionMatrix[x].append(connection) #most will be None
+            progress = progress + 1
+            progressBar.update(progress)
+
+
+    progressBar.finish()
+
     print("building in-memory connection matrix done!")
     return connectionMatrix
 

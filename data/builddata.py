@@ -11,6 +11,11 @@ from datetime import datetime, timedelta
 
 from geoconv2 import GPSConverter2
 
+from progressbar import AnimatedMarker, Bar, BouncingBar, Counter, ETA, \
+    FileTransferSpeed, FormatLabel, Percentage, \
+    ProgressBar, ReverseBar, RotatingMarker, \
+    SimpleProgress, Timer, AdaptiveETA, AdaptiveTransferSpeed
+
 #******************************************************************************
 # parse input params
 try:
@@ -89,10 +94,8 @@ stations.create_index([("coordinates", GEO2D)])
 
 
 #******************************************************************************
-# write stations
-majorStations = []
-
-
+# collection stations from csv file
+linegenstations = []
 
 with open(inputFile, 'r') as csvfile:
     reader = csv.DictReader(csvfile, delimiter=',', quotechar='"')
@@ -121,15 +124,14 @@ with open(inputFile, 'r') as csvfile:
             print("added new station: " + uid)
 
         if(row['use4lineGen'] is "1"):
-            majorStations.append(station)
+            linegenstations.append(station)
 
 
-teststation = majorStations[0]
-
+#******************************************************************************
+# define some function to deal with trias web-service
 
 # trias request url
 url = 'https://api.opentransportdata.swiss/trias'
-
 
 def getStops(station):
     xml = '''<?xml version="1.0" encoding="UTF-8"?>
@@ -146,7 +148,7 @@ def getStops(station):
                                 <DepArrTime>2017-10-27T10:00:00</DepArrTime>
                             </Location>
                             <Params>
-                                <NumberOfResults>2</NumberOfResults>
+                                <NumberOfResults>20</NumberOfResults>
                                 <StopEventType>departure</StopEventType>
                                 <IncludePreviousCalls>true</IncludePreviousCalls>
                                 <IncludeOnwardCalls>true</IncludeOnwardCalls>
@@ -281,8 +283,19 @@ def tryPopulateDbFromXML(xml_data):
                                 lines.insert_one(line)
                                 print("added new line: " + lineNumber)
 
+#******************************************************************************
+# do import (with a nice progress bar of course ;-)
 
-xml_data = getStops(teststation).content
-tryPopulateDbFromXML(xml_data)
+num_linegenstations = len(linegenstations)
+print("Number of stations used for line generation: " + str(num_linegenstations))
+progressBar = ProgressBar(widgets=['stations: ', Counter() , ' ',Percentage(), Bar(), ETA()], maxval=num_linegenstations).start()
+progress = 0
 
+for linegenstation in linegenstations:
+    xml_data = getStops(linegenstation).content
+    tryPopulateDbFromXML(xml_data)
+    progress = progress + 1
+    progressBar.update(progress)
+
+progressBar.finish()
 print("Importing finished")
