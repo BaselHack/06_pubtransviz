@@ -59,6 +59,7 @@ export default class DeckGLLines extends Component {
     });
   }
 
+
   render() {
     const {viewport, flightPaths, airports} = this.state;
 
